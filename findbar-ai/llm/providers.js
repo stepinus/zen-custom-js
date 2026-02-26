@@ -111,6 +111,24 @@ const openai = Object.assign(Object.create(providerPrototype), {
   label: "OpenAI GPT",
   faviconUrl: googleFaviconAPI("chatgpt.com"),
   apiKeyUrl: "https://platform.openai.com/account/api-keys",
+  baseUrlPref: PREFS.OPENAI_BASE_URL,
+  customModelPref: "extension.browse-bot.openai-custom-model",
+  get baseUrl() {
+    return PREFS.openaiBaseUrl;
+  },
+  set baseUrl(v) {
+    if (typeof v === "string") PREFS.openaiBaseUrl = v;
+  },
+  get customModel() {
+    return PREFS.getPref(this.customModelPref) || "";
+  },
+  set customModel(v) {
+    PREFS.setPref(this.customModelPref, v);
+  },
+  get model() {
+    const customModel = this.customModel;
+    return customModel ? customModel : PREFS.getPref(this.modelPref);
+  },
   AVAILABLE_MODELS: [
     "gpt-5.2-pro",
     "gpt-5.2-chat-latest",
@@ -168,6 +186,11 @@ const openai = Object.assign(Object.create(providerPrototype), {
   modelPref: PREFS.OPENAI_MODEL,
   apiPref: PREFS.OPENAI_API_KEY,
   create: createOpenAI,
+  getModel() {
+    const options = { apiKey: this.apiKey };
+    if (this.baseUrl) options.baseURL = this.baseUrl;
+    return this.create(options)(this.model);
+  },
 });
 
 const claude = Object.assign(Object.create(providerPrototype), {

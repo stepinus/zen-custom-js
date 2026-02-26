@@ -132,7 +132,9 @@ class BrowseBotPREFS extends PREFS {
   static GEMINI_API_KEY = "extension.browse-bot.gemini-api-key";
   static GEMINI_MODEL = "extension.browse-bot.gemini-model";
   static OPENAI_API_KEY = "extension.browse-bot.openai-api-key";
+  static OPENAI_BASE_URL = "extension.browse-bot.openai-base-url";
   static OPENAI_MODEL = "extension.browse-bot.openai-model";
+  static OPENAI_CUSTOM_MODEL = "extension.browse-bot.openai-custom-model";
   static CLAUDE_API_KEY = "extension.browse-bot.claude-api-key";
   static CLAUDE_MODEL = "extension.browse-bot.claude-model";
   static GROK_API_KEY = "extension.browse-bot.grok-api-key";
@@ -172,7 +174,9 @@ class BrowseBotPREFS extends PREFS {
     [BrowseBotPREFS.GEMINI_API_KEY]: "",
     [BrowseBotPREFS.GEMINI_MODEL]: "gemini-2.5-flash",
     [BrowseBotPREFS.OPENAI_API_KEY]: "",
+    [BrowseBotPREFS.OPENAI_BASE_URL]: "",
     [BrowseBotPREFS.OPENAI_MODEL]: "gpt-5.2",
+    [BrowseBotPREFS.OPENAI_CUSTOM_MODEL]: "",
     [BrowseBotPREFS.CLAUDE_API_KEY]: "",
     [BrowseBotPREFS.CLAUDE_MODEL]: "claude-4-opus",
     [BrowseBotPREFS.GROK_API_KEY]: "",
@@ -343,6 +347,12 @@ class BrowseBotPREFS extends PREFS {
   }
   static set ollamaBaseUrl(value) {
     this.setPref(this.OLLAMA_BASE_URL, value);
+  }
+  static get openaiBaseUrl() {
+    return this.getPref(this.OPENAI_BASE_URL);
+  }
+  static set openaiBaseUrl(value) {
+    this.setPref(this.OPENAI_BASE_URL, value);
   }
   static get llmTemperature() {
     return this.getPref(this.LLM_TEMPERATURE);
@@ -1055,7 +1065,19 @@ var SettingsModal = {
           <input type="text" id="pref-ollama-base-url" data-pref="${PREFS2.OLLAMA_BASE_URL}" placeholder="http://localhost:11434/api" />
         </div>
       `;
-      else {
+      else if (name === "openai") {
+        let baseUrlPrefKey = PREFS2.OPENAI_BASE_URL, apiPrefKey = PREFS2.OPENAI_API_KEY;
+        apiInputHtml = `
+        <div class="setting-item">
+          <label for="pref-openai-base-url">Base URL (optional)</label>
+          <input type="text" id="pref-openai-base-url" data-pref="${baseUrlPrefKey}" placeholder="https://api.openai.com/v1 (default)" />
+        </div>
+        <div class="setting-item">
+          <label for="pref-openai-api-key">API Key</label>
+          <input type="password" id="pref-openai-api-key" data-pref="${apiPrefKey}" placeholder="Enter ${provider.label} API Key" />
+        </div>
+      `;
+      } else {
         let apiPrefKey = PREFS2[`${name.toUpperCase()}_API_KEY`];
         apiInputHtml = apiPrefKey ? `
         <div class="setting-item">
@@ -1069,6 +1091,11 @@ var SettingsModal = {
           <label for="pref-${this._getSafeIdForProvider(name)}-model">Model</label>
           <div id="llm-model-selector-placeholder-${this._getSafeIdForProvider(name)}"></div>
         </div>
+      ` : "", customModelInputHtml = name === "openai" ? `
+        <div class="setting-item">
+          <label for="pref-openai-custom-model">Custom Model (overrides selection)</label>
+          <input type="text" id="pref-openai-custom-model" data-pref="${PREFS2.OPENAI_CUSTOM_MODEL}" placeholder="e.g., gpt-4-turbo, claude-3-opus" />
+        </div>
       ` : "";
       llmProviderSettingsHtml += `
         <div id="${this._getSafeIdForProvider(name)}-settings-group" class="provider-settings-group">
@@ -1078,6 +1105,7 @@ var SettingsModal = {
           </div>
           ${apiInputHtml}
           ${modelSelectPlaceholderHtml}
+          ${customModelInputHtml}
         </div>
       `;
     }
@@ -1088,6 +1116,8 @@ var SettingsModal = {
             <div class="reset-section-btn" data-reset-prefs="${[
       PREFS2.LLM_PROVIDER,
       PREFS2.OLLAMA_BASE_URL,
+      PREFS2.OPENAI_BASE_URL,
+      PREFS2.OPENAI_CUSTOM_MODEL,
       ...Object.values(browseBotFindbarLLM.AVAILABLE_PROVIDERS).flatMap((p) => [p.modelPref, PREFS2[`${p.name.toUpperCase()}_API_KEY`]]).filter(Boolean)
     ].join(",")}" title="Reset Section" role="button">
                 <img src="chrome://global/skin/icons/reload.svg" />
@@ -3159,6 +3189,25 @@ var providerPrototype = {
   label: "OpenAI GPT",
   faviconUrl: googleFaviconAPI("chatgpt.com"),
   apiKeyUrl: "https://platform.openai.com/account/api-keys",
+  baseUrlPref: prefs_default.OPENAI_BASE_URL,
+  customModelPref: "extension.browse-bot.openai-custom-model",
+  get baseUrl() {
+    return prefs_default.openaiBaseUrl;
+  },
+  set baseUrl(v) {
+    if (typeof v === "string")
+      prefs_default.openaiBaseUrl = v;
+  },
+  get customModel() {
+    return prefs_default.getPref(this.customModelPref) || "";
+  },
+  set customModel(v) {
+    prefs_default.setPref(this.customModelPref, v);
+  },
+  get model() {
+    let customModel = this.customModel;
+    return customModel ? customModel : prefs_default.getPref(this.modelPref);
+  },
   AVAILABLE_MODELS: [
     "gpt-5.2-pro",
     "gpt-5.2-chat-latest",
@@ -3215,7 +3264,13 @@ var providerPrototype = {
   },
   modelPref: prefs_default.OPENAI_MODEL,
   apiPref: prefs_default.OPENAI_API_KEY,
-  create: createOpenAI
+  create: createOpenAI,
+  getModel() {
+    let options = { apiKey: this.apiKey };
+    if (this.baseUrl)
+      options.baseURL = this.baseUrl;
+    return this.create(options)(this.model);
+  }
 }), claude = Object.assign(Object.create(providerPrototype), {
   name: "claude",
   label: "Anthropic Claude",

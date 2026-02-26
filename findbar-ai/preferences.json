@@ -527,6 +527,38 @@
     ]
   },
   {
+    "property": "extension.browse-bot.openai-base-url",
+    "label": "OpenAI Base URL",
+    "type": "string",
+    "placeholder": "https://api.openai.com/v1 (default)",
+    "defaultValue": "",
+    "description": "Custom base URL for OpenAI-compatible APIs (e.g., local LLM servers). Leave empty for default OpenAI.",
+    "conditions": [
+      {
+        "if": {
+          "property": "extension.browse-bot.llm-provider",
+          "value": "openai"
+        }
+      }
+    ]
+  },
+  {
+    "property": "extension.browse-bot.openai-custom-model",
+    "label": "OpenAI Custom Model",
+    "type": "string",
+    "placeholder": "e.g., gpt-4-turbo, claude-3-opus",
+    "defaultValue": "",
+    "description": "Enter a custom model name to override the dropdown selection. Leave empty to use the selected model from the dropdown.",
+    "conditions": [
+      {
+        "if": {
+          "property": "extension.browse-bot.llm-provider",
+          "value": "openai"
+        }
+      }
+    ]
+  },
+  {
     "property": "extension.browse-bot.openai-model",
     "label": "OpenAI Model",
     "type": "dropdown",

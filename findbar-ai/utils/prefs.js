@@ -40,7 +40,9 @@ class BrowseBotPREFS extends BasePREFS {
   static GEMINI_API_KEY = "extension.browse-bot.gemini-api-key";
   static GEMINI_MODEL = "extension.browse-bot.gemini-model";
   static OPENAI_API_KEY = "extension.browse-bot.openai-api-key";
+  static OPENAI_BASE_URL = "extension.browse-bot.openai-base-url";
   static OPENAI_MODEL = "extension.browse-bot.openai-model";
+  static OPENAI_CUSTOM_MODEL = "extension.browse-bot.openai-custom-model";
   static CLAUDE_API_KEY = "extension.browse-bot.claude-api-key";
   static CLAUDE_MODEL = "extension.browse-bot.claude-model";
   static GROK_API_KEY = "extension.browse-bot.grok-api-key";
@@ -85,7 +87,9 @@ class BrowseBotPREFS extends BasePREFS {
     [BrowseBotPREFS.GEMINI_API_KEY]: "",
     [BrowseBotPREFS.GEMINI_MODEL]: "gemini-2.5-flash",
     [BrowseBotPREFS.OPENAI_API_KEY]: "",
+    [BrowseBotPREFS.OPENAI_BASE_URL]: "",
     [BrowseBotPREFS.OPENAI_MODEL]: "gpt-5.2",
+    [BrowseBotPREFS.OPENAI_CUSTOM_MODEL]: "",
     [BrowseBotPREFS.CLAUDE_API_KEY]: "",
     [BrowseBotPREFS.CLAUDE_MODEL]: "claude-4-opus",
     [BrowseBotPREFS.GROK_API_KEY]: "",
@@ -325,6 +329,14 @@ class BrowseBotPREFS extends BasePREFS {
 
   static set ollamaBaseUrl(value) {
     this.setPref(this.OLLAMA_BASE_URL, value);
+  }
+
+  static get openaiBaseUrl() {
+    return this.getPref(this.OPENAI_BASE_URL);
+  }
+
+  static set openaiBaseUrl(value) {
+    this.setPref(this.OPENAI_BASE_URL, value);
   }
 
   static get llmTemperature() {

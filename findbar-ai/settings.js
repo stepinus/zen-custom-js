@@ -627,6 +627,19 @@ export const SettingsModal = {
           <input type="text" id="pref-ollama-base-url" data-pref="${baseUrlPrefKey}" placeholder="http://localhost:11434/api" />
         </div>
       `;
+      } else if (name === "openai") {
+        const baseUrlPrefKey = PREFS.OPENAI_BASE_URL;
+        const apiPrefKey = PREFS.OPENAI_API_KEY;
+        apiInputHtml = `
+        <div class="setting-item">
+          <label for="pref-openai-base-url">Base URL (optional)</label>
+          <input type="text" id="pref-openai-base-url" data-pref="${baseUrlPrefKey}" placeholder="https://api.openai.com/v1 (default)" />
+        </div>
+        <div class="setting-item">
+          <label for="pref-openai-api-key">API Key</label>
+          <input type="password" id="pref-openai-api-key" data-pref="${apiPrefKey}" placeholder="Enter ${provider.label} API Key" />
+        </div>
+      `;
       } else {
         const apiPrefKey = PREFS[`${name.toUpperCase()}_API_KEY`];
         apiInputHtml = apiPrefKey
@@ -649,6 +662,17 @@ export const SettingsModal = {
       `
         : "";
 
+      // Custom model input for OpenAI (allows entering any model name)
+      const customModelInputHtml =
+        name === "openai"
+          ? `
+        <div class="setting-item">
+          <label for="pref-openai-custom-model">Custom Model (overrides selection)</label>
+          <input type="text" id="pref-openai-custom-model" data-pref="${PREFS.OPENAI_CUSTOM_MODEL}" placeholder="e.g., gpt-4-turbo, claude-3-opus" />
+        </div>
+      `
+          : "";
+
       llmProviderSettingsHtml += `
         <div id="${this._getSafeIdForProvider(name)}-settings-group" class="provider-settings-group">
           <div class="provider-header-group">
@@ -657,6 +681,7 @@ export const SettingsModal = {
           </div>
           ${apiInputHtml}
           ${modelSelectPlaceholderHtml}
+          ${customModelInputHtml}
         </div>
       `;
     }
@@ -664,6 +689,8 @@ export const SettingsModal = {
     const llmProvidersResetPrefs = [
       PREFS.LLM_PROVIDER,
       PREFS.OLLAMA_BASE_URL,
+      PREFS.OPENAI_BASE_URL,
+      PREFS.OPENAI_CUSTOM_MODEL,
       ...Object.values(browseBotFindbarLLM.AVAILABLE_PROVIDERS)
         .flatMap((p) => [p.modelPref, PREFS[`${p.name.toUpperCase()}_API_KEY`]])
         .filter(Boolean),
