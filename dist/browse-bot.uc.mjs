@@ -3,7 +3,7 @@
 // @description     Transforms the standard Zen Browser findbar into a modern, floating, AI-powered chat interface. Inspired by Arc Browser.
 // @author          Bibek Bhusal
 // @version         2.5.84b
-// @lastUpdated     2026-02-06
+// @lastUpdated     2026-02-26
 // @ignorecache
 // @homepage        https://github.com/Vertex-Mods/Browse-Bot
 // ==/UserScript==
